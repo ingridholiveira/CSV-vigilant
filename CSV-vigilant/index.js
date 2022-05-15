@@ -1,8 +1,8 @@
-const {
-    parse
-} = require('fast-csv');
+const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
+const { parse } = require('fast-csv');
 const fs = require('fs');
-//const { delimiter } = require('path'); //ainda não adicionado;
+const validator = require("node-email-validation");
+
 
 const stream = fs.createReadStream("input1.csv");
 let dataCsv = [];
@@ -57,9 +57,19 @@ const convertDataJson = (row, header) => {
 }
 
 const formatValues = (data) => {
-
-    return formatedData;
+    try {
+        const number = phoneUtil.parseAndKeepRawInput(data, 'BR');
+        if (phoneUtil.isValidNumber(number)) {
+            return number.getCountryCode() + '' + number.getNationalNumber();
+        }
+    } catch(e){}
+    if (validator.is_email_valid(data)){
+        return data;
+    }
+    return null;
 }
+
+
 const promiseWriteJson = (dataCsv) => {
     let header = dataCsv[0];
     let listObjJson = [];
